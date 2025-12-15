@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pythonlibs/
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.db
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (keep directory but ignore contents)
+backend/uploads/images/*
+!backend/uploads/images/.gitkeep
+
+# Build outputs
+client/dist/
+
+# Lock files (Python only)
+uv.lock
+
+# Test and setup files
+**/test_*.py
+**/verify_*.py
+**/insert_*.py
+**/reset_*.py
+
+# Documentation (keep only README)
+APPLICATION_STATUS.md
+ISSUES_FIXED.md
+POSTGRESQL_SETUP.md
+replit.md
+
+# Replit
+.replit
