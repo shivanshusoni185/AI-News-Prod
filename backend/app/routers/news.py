@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -40,6 +41,27 @@ async def list_news(
             item.tags = []
 
     return news
+
+
+@router.get("/image/{news_id}")
+async def get_news_image(news_id: int, db: Session = Depends(get_db)):
+    """Serve image for a news article from database"""
+    news = db.query(News).filter(News.id == news_id).first()
+    if not news:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if not news.image_data:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Return the image with proper content type
+    return Response(
+        content=news.image_data,
+        media_type=news.image_mimetype or "image/jpeg",
+        headers={
+            "Cache-Control": "public, max-age=31536000",  # Cache for 1 year
+            "Content-Disposition": f'inline; filename="{news.image_filename or "image.jpg"}"'
+        }
+    )
 
 
 @router.get("/{news_id}", response_model=NewsResponse)

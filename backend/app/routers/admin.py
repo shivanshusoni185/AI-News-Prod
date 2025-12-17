@@ -1,11 +1,6 @@
-import os
-import uuid
-import shutil
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from PIL import Image
-from io import BytesIO
 
 from ..database import get_db
 from ..models import News
@@ -14,8 +9,8 @@ from ..auth import authenticate_admin, create_access_token, get_current_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-UPLOAD_DIR = "backend/uploads/images"
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 def validate_image(file: UploadFile) -> bool:
@@ -27,24 +22,21 @@ def validate_image(file: UploadFile) -> bool:
     return True
 
 
-def save_image(file: UploadFile) -> str:
-    ext = file.filename.rsplit(".", 1)[-1].lower()
-    filename = f"{uuid.uuid4()}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    return filename
+async def read_image_data(file: UploadFile) -> tuple[bytes, str, str]:
+    """Read image file and return binary data, filename, and mimetype"""
+    image_data = await file.read()
 
+    # Check file size
+    if len(image_data) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Image size exceeds maximum allowed size of {MAX_IMAGE_SIZE / 1024 / 1024}MB"
+        )
 
-def delete_image(filename: str):
-    if filename:
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    # Determine mimetype
+    mimetype = file.content_type or "image/jpeg"
+
+    return image_data, file.filename, mimetype
 
 
 @router.post("/login", response_model=Token)
@@ -102,14 +94,17 @@ async def create_news(
 ):
     import json
 
-    image_path = None
+    image_data = None
+    image_filename = None
+    image_mimetype = None
+
     if image and image.filename:
         if not validate_image(image):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid image type. Allowed: jpg, jpeg, png, webp"
             )
-        image_path = save_image(image)
+        image_data, image_filename, image_mimetype = await read_image_data(image)
 
     # Parse tags - can be JSON array or comma-separated string
     tags_list = None
@@ -125,7 +120,9 @@ async def create_news(
         content=content,
         tags=tags_list,
         published=published,
-        image_url=image_path
+        image_data=image_data,
+        image_filename=image_filename,
+        image_mimetype=image_mimetype
     )
     db.add(news)
     db.commit()
@@ -173,9 +170,11 @@ async def update_news(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid image type. Allowed: jpg, jpeg, png, webp"
             )
-        if news.image_url:
-            delete_image(news.image_url)
-        news.image_url = save_image(image)
+        # Update image data in database
+        image_data, image_filename, image_mimetype = await read_image_data(image)
+        news.image_data = image_data
+        news.image_filename = image_filename
+        news.image_mimetype = image_mimetype
 
     db.commit()
     db.refresh(news)
@@ -192,9 +191,6 @@ async def delete_news(
     if not news:
         raise HTTPException(status_code=404, detail="News not found")
 
-    if news.image_url:
-        delete_image(news.image_url)
-    
     db.delete(news)
     db.commit()
     return {"message": "News deleted successfully"}

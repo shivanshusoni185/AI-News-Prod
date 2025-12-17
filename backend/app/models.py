@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON, LargeBinary
 from sqlalchemy.sql import func
 from sqlalchemy.orm import validates
 from .database import Base
@@ -16,12 +16,24 @@ class News(Base):
     summary = Column(String(500), nullable=False)
     content = Column(Text, nullable=False)
     tags = Column(JSON, nullable=True, default=list)
-    image_url = Column(String(500), nullable=True)
+    _image_url_legacy = Column('image_url', String(500), nullable=True)  # Deprecated - kept for backward compatibility
+    image_data = Column(LargeBinary, nullable=True)  # Store actual image binary data
+    image_filename = Column(String(255), nullable=True)  # Store original filename
+    image_mimetype = Column(String(100), nullable=True)  # Store MIME type (image/jpeg, etc.)
     published = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
     author_id = Column(Integer, nullable=True)  # Reference to user who created the news
     slug = Column(String(300), unique=True, nullable=True)  # URL-friendly version of title
+
+    @property
+    def image_url(self) -> Optional[str]:
+        """Computed property that returns the correct image URL"""
+        if self.image_data:
+            return f"/news/image/{self.id}"
+        elif self._image_url_legacy:  # Backward compatibility with old file-based images
+            return self._image_url_legacy
+        return None
 
     @validates('tags')
     def validate_tags(self, key, tags):
@@ -55,13 +67,20 @@ class News(Base):
         elif tags_value is None:
             tags_value = []
 
+        # Generate image URL if image data exists
+        image_url = None
+        if self.image_data:
+            image_url = f"/news/image/{self.id}"
+        elif self.image_url:  # Backward compatibility
+            image_url = self.image_url
+
         return {
             'id': self.id,
             'title': self.title,
             'summary': self.summary,
             'content': self.content,
             'tags': tags_value,
-            'image_url': self.image_url,
+            'image_url': image_url,
             'published': self.published,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

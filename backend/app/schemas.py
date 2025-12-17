@@ -53,6 +53,31 @@ class NewsResponse(NewsBase):
     image_url: Optional[str] = None
     created_at: datetime
 
+    @model_validator(mode='before')
+    @classmethod
+    def compute_image_url(cls, data):
+        """Compute image_url from image_data if available"""
+        if isinstance(data, dict):
+            return data
+        # If it's a model instance, convert to dict
+        if hasattr(data, '__dict__'):
+            # Get the model's attributes
+            result = {}
+            for key in ['id', 'title', 'summary', 'content', 'tags', 'published', 'created_at', 'updated_at', 'author_id', 'slug']:
+                if hasattr(data, key):
+                    result[key] = getattr(data, key)
+
+            # Compute image_url
+            if hasattr(data, 'image_data') and data.image_data:
+                result['image_url'] = f"/news/image/{data.id}"
+            elif hasattr(data, '_image_url_legacy') and data._image_url_legacy:
+                result['image_url'] = data._image_url_legacy
+            else:
+                result['image_url'] = None
+
+            return result
+        return data
+
     class Config:
         from_attributes = True
 
@@ -65,6 +90,31 @@ class NewsListResponse(BaseModel):
     image_url: Optional[str] = None
     published: bool
     created_at: datetime
+
+    @model_validator(mode='before')
+    @classmethod
+    def compute_image_url(cls, data):
+        """Compute image_url from image_data if available"""
+        if isinstance(data, dict):
+            return data
+        # If it's a model instance, convert to dict
+        if hasattr(data, '__dict__'):
+            # Get the model's attributes
+            result = {}
+            for key in ['id', 'title', 'summary', 'tags', 'published', 'created_at']:
+                if hasattr(data, key):
+                    result[key] = getattr(data, key)
+
+            # Compute image_url
+            if hasattr(data, 'image_data') and data.image_data:
+                result['image_url'] = f"/news/image/{data.id}"
+            elif hasattr(data, '_image_url_legacy') and data._image_url_legacy:
+                result['image_url'] = data._image_url_legacy
+            else:
+                result['image_url'] = None
+
+            return result
+        return data
 
     @field_validator('tags', mode='before')
     @classmethod
