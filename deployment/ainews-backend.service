@@ -1,0 +1,34 @@
+# Systemd Service for AI Newsroom Backend
+# Location: /etc/systemd/system/ainews-backend.service
+
+[Unit]
+Description=AI Newsroom FastAPI Backend
+After=network.target
+
+[Service]
+Type=simple
+User=ainews
+Group=ainews
+WorkingDirectory=/home/ainews/AI-News-Prod/backend
+Environment="PATH=/home/ainews/AI-News-Prod/backend/venv/bin"
+
+# Load environment variables from .env file
+EnvironmentFile=/home/ainews/AI-News-Prod/backend/.env
+
+# Start command
+ExecStart=/home/ainews/AI-News-Prod/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Resource limits
+LimitNOFILE=65536
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ainews-backend
+
+[Install]
+WantedBy=multi-user.target
