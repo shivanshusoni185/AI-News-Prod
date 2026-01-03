@@ -198,7 +198,7 @@ This project is licensed under the MIT License.
 ## Contact
 
 - Email: shivanshusoni1111@gmail.com
-- Website: [TheCloudMind.ai](/)
+- Website: [cloudmindai.in]
 
 ## Acknowledgments
 
