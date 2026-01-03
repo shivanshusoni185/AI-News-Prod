@@ -42,30 +42,30 @@ function Home() {
             className="h-32 w-32 md:h-40 md:w-40 rounded-full object-cover shadow-2xl ring-4 ring-blue-100 hover:ring-blue-200 transition-all"
           />
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 px-4">
           <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 bg-clip-text text-transparent">
             TheCloudMind.ai
           </span>
         </h1>
-        <p className="text-2xl font-semibold text-gray-800 mb-2">
+        <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2 px-4">
           Latest AI News & Insights
         </p>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 sm:mb-8 px-4">
           Your trusted source for AI developments and innovations
         </p>
-        <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+        <form onSubmit={handleSearch} className="max-w-xl mx-auto px-4">
           <div className="relative">
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search news..."
-              className="w-full px-5 py-3 pl-12 rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+              className="w-full px-4 sm:px-5 py-2.5 sm:py-3 pl-10 sm:pl-12 pr-20 sm:pr-24 rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm sm:text-base"
             />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <button 
+            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+            <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+              className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 px-3 sm:px-6 py-1.5 sm:py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition text-sm sm:text-base"
             >
               Search
             </button>

@@ -73,20 +73,20 @@ function Article() {
       )}
 
       <header className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
           {article.title}
         </h1>
-        <div className="flex flex-wrap items-center gap-4 text-gray-500">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm sm:text-base text-gray-500">
           <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>{date}</span>
           </div>
           {tags.length > 0 && (
-            <div className="flex items-center space-x-2">
-              <Tag className="w-5 h-5" />
-              <div className="flex gap-2">
+            <div className="flex items-start space-x-2 w-full sm:w-auto">
+              <Tag className="w-4 h-4 sm:w-5 sm:h-5 mt-1 flex-shrink-0" />
+              <div className="flex flex-wrap gap-2">
                 {tags.map((tag, i) => (
-                  <span key={i} className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm">
+                  <span key={i} className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs sm:text-sm whitespace-nowrap">
                     {tag}
                   </span>
                 ))}
@@ -96,15 +96,15 @@ function Article() {
         </div>
       </header>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r-lg">
-        <p className="text-gray-700 text-lg italic">
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 mb-6 sm:mb-8 rounded-r-lg">
+        <p className="text-gray-700 text-base sm:text-lg italic leading-relaxed">
           {article.summary}
         </p>
       </div>
 
-      <div className="prose prose-lg max-w-none">
+      <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
         {article.content.split('\n').map((paragraph, i) => (
-          paragraph.trim() && <p key={i} className="text-gray-700 mb-4">{paragraph}</p>
+          paragraph.trim() && <p key={i} className="text-gray-700 mb-4 leading-relaxed text-sm sm:text-base">{paragraph}</p>
         ))}
       </div>
     </article>
