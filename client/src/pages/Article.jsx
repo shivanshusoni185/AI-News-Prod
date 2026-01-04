@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, Calendar, Tag, Loader } from 'lucide-react'
 import { newsApi, getImageUrl } from '../lib/api'
 
@@ -55,12 +56,33 @@ function Article() {
     day: 'numeric'
   })
 
+  const articleUrl = `https://cloudmindai.in/article/${id}`
+  const description = article.summary || article.content.substring(0, 160) + '...'
+  const keywords = tags.join(', ')
+
   return (
-    <article className="max-w-4xl mx-auto px-4 py-8">
-      <Link to="/" className="flex items-center text-blue-600 hover:underline mb-8">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Home
-      </Link>
+    <>
+      <Helmet>
+        <title>{article.title} - TheCloudMind.ai</title>
+        <meta name="description" content={description} />
+        <meta name="keywords" content={`${keywords}, AI news, artificial intelligence, machine learning`} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={articleUrl} />
+        {imageUrl && <meta property="og:image" content={imageUrl} />}
+        <meta property="article:published_time" content={article.created_at} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:description" content={description} />
+        {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+        <link rel="canonical" href={articleUrl} />
+      </Helmet>
+      <article className="max-w-4xl mx-auto px-4 py-8">
+        <Link to="/" className="flex items-center text-blue-600 hover:underline mb-8">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Link>
 
       {imageUrl && (
         <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-8">
@@ -107,7 +129,8 @@ function Article() {
           paragraph.trim() && <p key={i} className="text-gray-700 mb-4 leading-relaxed text-sm sm:text-base">{paragraph}</p>
         ))}
       </div>
-    </article>
+      </article>
+    </>
   )
 }
 

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import { Target, Users, Zap, Brain, TrendingUp } from 'lucide-react'
 import logo from '../assets/logo.jpg'
 
@@ -26,8 +27,22 @@ function AboutUs() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section */}
+    <>
+      <Helmet>
+        <title>About Us - TheCloudMind.ai | Our Mission & Story</title>
+        <meta name="description" content="Learn about TheCloudMind.ai - democratizing AI knowledge through expert coverage of artificial intelligence news, machine learning developments, and GenAI innovations for everyone from beginners to experts." />
+        <meta name="keywords" content="about TheCloudMind.ai, AI news platform, AI community, AI knowledge, artificial intelligence insights, AI mission" />
+        <meta property="og:title" content="About Us - TheCloudMind.ai" />
+        <meta property="og:description" content="Democratizing AI knowledge through expert coverage and insights for everyone from beginners to experts." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://cloudmindai.in/about" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About Us - TheCloudMind.ai" />
+        <meta name="twitter:description" content="Democratizing AI knowledge through expert coverage and insights." />
+        <link rel="canonical" href="https://cloudmindai.in/about" />
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex justify-center mb-6">
@@ -138,7 +153,8 @@ function AboutUs() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

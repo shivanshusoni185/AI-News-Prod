@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Search, Loader } from 'lucide-react'
 import NewsCard from '../components/NewsCard'
 import { newsApi } from '../lib/api'
@@ -32,8 +33,22 @@ function Home() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
+    <>
+      <Helmet>
+        <title>TheCloudMind.ai - Latest AI News & Insights</title>
+        <meta name="description" content="Stay updated with the latest AI news, artificial intelligence developments, machine learning breakthroughs, and GenAI innovations. Your trusted source for AI insights and technology trends." />
+        <meta name="keywords" content="AI news, artificial intelligence, machine learning, GenAI, AI insights, AI developments, technology news, AI innovations" />
+        <meta property="og:title" content="TheCloudMind.ai - Latest AI News & Insights" />
+        <meta property="og:description" content="Your trusted source for AI news, developments, and innovations from around the world." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://cloudmindai.in/" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="TheCloudMind.ai - Latest AI News & Insights" />
+        <meta name="twitter:description" content="Your trusted source for AI news, developments, and innovations from around the world." />
+        <link rel="canonical" href="https://cloudmindai.in/" />
+      </Helmet>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center mb-12">
         {/* Logo Hero Section */}
         <div className="flex justify-center mb-6">
           <img
@@ -96,7 +111,8 @@ function Home() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Calendar, Loader, TrendingUp } from 'lucide-react'
 import NewsCard from '../components/NewsCard'
 import { newsApi } from '../lib/api'
@@ -53,8 +54,22 @@ function LatestNews() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
+    <>
+      <Helmet>
+        <title>Latest AI News - TheCloudMind.ai | Breaking AI Updates</title>
+        <meta name="description" content="Discover the latest AI news from the past 7 days. Stay updated with breaking developments in artificial intelligence, machine learning, and GenAI innovations." />
+        <meta name="keywords" content="latest AI news, breaking AI updates, recent AI developments, AI news today, artificial intelligence updates, machine learning news" />
+        <meta property="og:title" content="Latest AI News - TheCloudMind.ai" />
+        <meta property="og:description" content="Breaking AI news and updates from the past 7 days. Stay informed about the latest developments in artificial intelligence." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://cloudmindai.in/latest-news" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Latest AI News - TheCloudMind.ai" />
+        <meta name="twitter:description" content="Breaking AI news and updates from the past 7 days." />
+        <link rel="canonical" href="https://cloudmindai.in/latest-news" />
+      </Helmet>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
@@ -111,7 +126,8 @@ function LatestNews() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 
