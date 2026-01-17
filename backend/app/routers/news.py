@@ -64,8 +64,46 @@ async def get_news_image(news_id: int, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/by-slug/{slug}", response_model=NewsResponse)
+async def get_news_by_slug(slug: str, db: Session = Depends(get_db)):
+    """Get a news article by its slug"""
+    news = db.query(News).filter(News.slug == slug, News.published == True).first()
+    if not news:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    # Ensure tags is always a list
+    if isinstance(news.tags, str):
+        news.tags = [news.tags.strip()] if news.tags.strip() else []
+    elif news.tags is None:
+        news.tags = []
+
+    return news
+
+
+@router.get("/image/by-slug/{slug}")
+async def get_news_image_by_slug(slug: str, db: Session = Depends(get_db)):
+    """Serve image for a news article by slug"""
+    news = db.query(News).filter(News.slug == slug).first()
+    if not news:
+        raise HTTPException(status_code=404, detail="News not found")
+
+    if not news.image_data:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Return the image with proper content type
+    return Response(
+        content=news.image_data,
+        media_type=news.image_mimetype or "image/jpeg",
+        headers={
+            "Cache-Control": "public, max-age=31536000",  # Cache for 1 year
+            "Content-Disposition": f'inline; filename="{news.image_filename or "image.jpg"}"'
+        }
+    )
+
+
 @router.get("/{news_id}", response_model=NewsResponse)
 async def get_news(news_id: int, db: Session = Depends(get_db)):
+    """Get a news article by ID (for backward compatibility)"""
     news = db.query(News).filter(News.id == news_id, News.published == True).first()
     if not news:
         raise HTTPException(status_code=404, detail="News not found")

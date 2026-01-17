@@ -1,9 +1,57 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON, LargeBinary
 from sqlalchemy.sql import func
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, Session
 from .database import Base
 from typing import List, Optional, Dict, Any
+import re
+import unicodedata
+
+
+def generate_slug(title: str, db_session: Optional[Session] = None, model_class=None) -> str:
+    """
+    Generate a URL-safe slug from a title.
+
+    Args:
+        title: The title to convert to a slug
+        db_session: Optional database session to check for uniqueness
+        model_class: The model class to check against (e.g., News)
+
+    Returns:
+        A URL-safe slug string
+    """
+    if not title:
+        return ""
+
+    # Convert to lowercase
+    slug = title.lower()
+
+    # Remove accents and special characters
+    slug = unicodedata.normalize('NFKD', slug)
+    slug = slug.encode('ascii', 'ignore').decode('ascii')
+
+    # Replace spaces and special characters with hyphens
+    slug = re.sub(r'[^a-z0-9]+', '-', slug)
+
+    # Remove leading/trailing hyphens
+    slug = slug.strip('-')
+
+    # Remove consecutive hyphens
+    slug = re.sub(r'-+', '-', slug)
+
+    # Limit length to 250 characters
+    slug = slug[:250]
+
+    # Handle uniqueness if db_session provided
+    if db_session and model_class:
+        original_slug = slug
+        counter = 2
+        while db_session.query(model_class).filter(model_class.slug == slug).first():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+
+    return slug
+
 
 class News(Base):
     """
@@ -57,6 +105,11 @@ class News(Base):
         if isinstance(tags_value, list):
             return tags_value
         return []
+
+    def generate_slug_from_title(self, db_session: Optional[Session] = None):
+        """Generate and set slug from title if slug is not already set"""
+        if not self.slug and self.title:
+            self.slug = generate_slug(self.title, db_session, News)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert model instance to dictionary"""

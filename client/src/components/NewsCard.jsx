@@ -12,8 +12,8 @@ function NewsCard({ article }) {
   })
 
   return (
-    <Link 
-      to={`/article/${article.id}`}
+    <Link
+      to={`/article/${article.slug}`}
       className="block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
     >
       <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 relative overflow-hidden">

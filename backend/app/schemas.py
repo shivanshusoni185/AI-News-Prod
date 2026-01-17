@@ -52,6 +52,7 @@ class NewsResponse(NewsBase):
     id: int
     image_url: Optional[str] = None
     created_at: datetime
+    slug: Optional[str] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -90,6 +91,7 @@ class NewsListResponse(BaseModel):
     image_url: Optional[str] = None
     published: bool
     created_at: datetime
+    slug: Optional[str] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -101,7 +103,7 @@ class NewsListResponse(BaseModel):
         if hasattr(data, '__dict__'):
             # Get the model's attributes
             result = {}
-            for key in ['id', 'title', 'summary', 'tags', 'published', 'created_at']:
+            for key in ['id', 'title', 'summary', 'tags', 'published', 'created_at', 'slug']:
                 if hasattr(data, key):
                     result[key] = getattr(data, key)
 

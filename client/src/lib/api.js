@@ -22,6 +22,7 @@ export const newsApi = {
     return api.get(`/news?${params.toString()}`);
   },
   getById: (id) => api.get(`/news/${id}`),
+  getBySlug: (slug) => api.get(`/news/by-slug/${slug}`),
 };
 
 export const adminApi = {

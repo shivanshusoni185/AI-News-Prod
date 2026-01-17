@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import News
+from ..models import News, generate_slug
 from ..schemas import NewsResponse, Token
 from ..auth import authenticate_admin, create_access_token, get_current_admin
 
@@ -88,6 +88,7 @@ async def create_news(
     content: str = Form(...),
     tags: Optional[str] = Form(None),
     published: bool = Form(False),
+    slug: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_admin: str = Depends(get_current_admin)
@@ -114,12 +115,20 @@ async def create_news(
         except:
             tags_list = [t.strip() for t in tags.split(',')]
 
+    # Generate slug from title if not provided
+    if not slug:
+        slug = generate_slug(title, db, News)
+    else:
+        # If custom slug provided, ensure it's URL-safe and unique
+        slug = generate_slug(slug, db, News)
+
     news = News(
         title=title,
         summary=summary,
         content=content,
         tags=tags_list,
         published=published,
+        slug=slug,
         image_data=image_data,
         image_filename=image_filename,
         image_mimetype=image_mimetype
@@ -138,6 +147,7 @@ async def update_news(
     content: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     published: Optional[bool] = Form(None),
+    slug: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_admin: str = Depends(get_current_admin)
@@ -148,8 +158,10 @@ async def update_news(
     if not news:
         raise HTTPException(status_code=404, detail="News not found")
 
-    if title is not None:
+    title_changed = False
+    if title is not None and title != news.title:
         news.title = title
+        title_changed = True
     if summary is not None:
         news.summary = summary
     if content is not None:
@@ -163,6 +175,24 @@ async def update_news(
         news.tags = tags_list
     if published is not None:
         news.published = published
+
+    # Handle slug update
+    if slug is not None:
+        # Admin provided custom slug
+        # Exclude current news from uniqueness check
+        temp_slug = generate_slug(slug, db, News)
+        if temp_slug != news.slug:
+            # Check if this slug is taken by another article
+            existing = db.query(News).filter(News.slug == temp_slug, News.id != news_id).first()
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Slug '{temp_slug}' is already in use"
+                )
+            news.slug = temp_slug
+    elif title_changed and not news.slug:
+        # If title changed and no slug exists, generate one
+        news.slug = generate_slug(news.title, db, News)
 
     if image and image.filename:
         if not validate_image(image):

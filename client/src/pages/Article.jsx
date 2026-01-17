@@ -5,19 +5,19 @@ import { ArrowLeft, Calendar, Tag, Loader } from 'lucide-react'
 import { newsApi, getImageUrl } from '../lib/api'
 
 function Article() {
-  const { id } = useParams()
+  const { slug } = useParams()
   const [article, setArticle] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchArticle()
-  }, [id])
+  }, [slug])
 
   const fetchArticle = async () => {
     setLoading(true)
     try {
-      const response = await newsApi.getById(id)
+      const response = await newsApi.getBySlug(slug)
       setArticle(response.data)
     } catch (err) {
       setError('Article not found')
@@ -56,7 +56,7 @@ function Article() {
     day: 'numeric'
   })
 
-  const articleUrl = `https://cloudmindai.in/article/${id}`
+  const articleUrl = `https://cloudmindai.in/article/${article.slug}`
   const description = article.summary || article.content.substring(0, 160) + '...'
   const keywords = tags.join(', ')
 
