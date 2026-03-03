@@ -61,3 +61,7 @@ replit.md
 
 # Replit
 .replit
+-e 
+# Environment files
+*.env
+*.env.*
