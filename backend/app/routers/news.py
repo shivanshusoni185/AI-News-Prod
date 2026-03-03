@@ -13,7 +13,7 @@ import math
 router = APIRouter(prefix="/news", tags=["news"])
 
 
-@router.get("", response_model=dict)
+@router.get("")
 async def list_news(
     search: Optional[str] = Query(None, description="Search in title and summary"),
     tag: Optional[str] = Query(None, description="Filter by tag"),
@@ -43,18 +43,32 @@ async def list_news(
     offset = (page - 1) * limit
     news = query.order_by(News.created_at.desc()).offset(offset).limit(limit).all()
 
-    # Ensure tags is always a list
+    # Convert to dicts and ensure tags is always a list
+    items_data = []
     for item in news:
         if isinstance(item.tags, str):
             item.tags = [item.tags.strip()] if item.tags.strip() else []
         elif item.tags is None:
             item.tags = []
+        
+        # Convert to dict
+        item_dict = {
+            'id': item.id,
+            'title': item.title,
+            'summary': item.summary,
+            'tags': item.tags,
+            'image_url': f"/news/image/{item.id}" if item.image_data else None,
+            'published': item.published,
+            'created_at': item.created_at.isoformat() if item.created_at else None,
+            'slug': item.slug
+        }
+        items_data.append(item_dict)
 
     # Calculate pagination metadata
     total_pages = math.ceil(total / limit) if total > 0 else 1
 
     return {
-        "items": news,
+        "items": items_data,
         "total": total,
         "page": page,
         "limit": limit,
