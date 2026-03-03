@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from .database import engine, Base
-from .routers import admin, news, contact
+from .routers import admin, news, contact, newsletter
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ app.add_middleware(
 app.include_router(admin.router)
 app.include_router(news.router)
 app.include_router(contact.router)
+app.include_router(newsletter.router)
 
 
 @app.get("/")

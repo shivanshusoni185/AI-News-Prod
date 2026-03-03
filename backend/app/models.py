@@ -187,3 +187,77 @@ class Contact(Base):
 
     def __repr__(self) -> str:
         return f"<Contact(id={self.id}, name='{self.name}', email='{self.email}')>"
+
+
+class Newsletter(Base):
+    """
+    Newsletter model for storing email subscriptions.
+    """
+    __tablename__ = "newsletter"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    active = Column(Boolean, default=True, index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model instance to dictionary"""
+        return {
+            'id': self.id,
+            'email': self.email,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'active': self.active
+        }
+
+    def __repr__(self) -> str:
+        return f"<Newsletter(id={self.id}, email='{self.email}', active={self.active})>"
+
+
+class ArticleView(Base):
+    """
+    ArticleView model for tracking article views/analytics.
+    """
+    __tablename__ = "article_views"
+
+    id = Column(Integer, primary_key=True, index=True)
+    news_id = Column(Integer, nullable=False, index=True)
+    viewed_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    ip_address = Column(String(50), nullable=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model instance to dictionary"""
+        return {
+            'id': self.id,
+            'news_id': self.news_id,
+            'viewed_at': self.viewed_at.isoformat() if self.viewed_at else None,
+            'ip_address': self.ip_address
+        }
+
+    def __repr__(self) -> str:
+        return f"<ArticleView(id={self.id}, news_id={self.news_id})>"
+
+
+class ArticleReaction(Base):
+    """
+    ArticleReaction model for storing likes and bookmarks.
+    """
+    __tablename__ = "article_reactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    news_id = Column(Integer, nullable=False, index=True)
+    reaction_type = Column(String(50), nullable=False)  # 'like', 'bookmark'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    ip_address = Column(String(50), nullable=True, index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model instance to dictionary"""
+        return {
+            'id': self.id,
+            'news_id': self.news_id,
+            'reaction_type': self.reaction_type,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'ip_address': self.ip_address
+        }
+
+    def __repr__(self) -> str:
+        return f"<ArticleReaction(id={self.id}, news_id={self.news_id}, type={self.reaction_type})>"

@@ -15,14 +15,29 @@ api.interceptors.request.use((config) => {
 });
 
 export const newsApi = {
-  getAll: (search = '', tag = '') => {
+  getAll: (search = '', tag = '', page = 1, limit = 12) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (tag) params.append('tag', tag);
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
     return api.get(`/news?${params.toString()}`);
   },
   getById: (id) => api.get(`/news/${id}`),
   getBySlug: (slug) => api.get(`/news/by-slug/${slug}`),
+  getStats: (id) => api.get(`/news/${id}/stats`),
+  getRelated: (id, limit = 3) => api.get(`/news/${id}/related?limit=${limit}`),
+  getAllTags: () => api.get(`/news/tags/all`),
+  recordView: (newsId) => api.post(`/news/view`, { news_id: newsId }),
+  addReaction: (newsId, reactionType) => api.post(`/news/reaction`, { 
+    news_id: newsId, 
+    reaction_type: reactionType 
+  }),
+};
+
+export const newsletterApi = {
+  subscribe: (email) => api.post('/newsletter', { email }),
+  unsubscribe: (email) => api.delete(`/newsletter/${email}`),
 };
 
 export const adminApi = {

@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Settings } from 'lucide-react'
+import { LogOut, Settings, Moon, Sun } from 'lucide-react'
+import { useDarkMode } from '../lib/DarkModeContext'
 import logo from '../assets/logo.jpg'
 
 function Header() {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
+  const { darkMode, toggleDarkMode } = useDarkMode()
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -12,7 +14,7 @@ function Header() {
   }
 
   return (
-    <header className="bg-white shadow-md border-b border-gray-200">
+    <header className="bg-white dark:bg-gray-900 shadow-md border-b border-gray-200 dark:border-gray-800 transition-colors">
       <div className="container mx-auto px-3 sm:px-4 py-2 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2 group">
@@ -28,7 +30,21 @@ function Header() {
 
         {/* Navigation */}
         <nav className="hidden md:flex space-x-8 items-center">
-          <Link to="/" className="text-gray-700 hover:text-blue-600 transition font-medium">Home</Link>
+          <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition font-medium">Home</Link>
+
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            aria-label="Toggle dark mode"
+            data-testid="dark-mode-toggle"
+          >
+            {darkMode ? (
+              <Sun className="w-5 h-5 text-yellow-500" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
 
           {/* Social Media Links */}
           <div className="flex items-center space-x-4">
@@ -36,7 +52,7 @@ function Header() {
               href="https://www.youtube.com/@CloudMindAI" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-600 hover:text-red-600 transition"
+              className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition"
               aria-label="YouTube"
             >
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -47,7 +63,7 @@ function Header() {
               href="https://www.instagram.com/thecloudmind.ai/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-600 hover:text-pink-600 transition"
+              className="text-gray-600 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 transition"
               aria-label="Instagram"
             >
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -56,6 +72,21 @@ function Header() {
             </a>
           </div>
         </nav>
+
+        {/* Mobile - Dark Mode Toggle */}
+        <div className="flex md:hidden items-center space-x-2">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? (
+              <Sun className="w-5 h-5 text-yellow-500" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
+        </div>
 
         {/* Admin Controls - Only show when logged in */}
         {token && (

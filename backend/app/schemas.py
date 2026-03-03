@@ -53,12 +53,17 @@ class NewsResponse(NewsBase):
     image_url: Optional[str] = None
     created_at: datetime
     slug: Optional[str] = None
+    reading_time: Optional[int] = None
 
     @model_validator(mode='before')
     @classmethod
     def compute_image_url(cls, data):
-        """Compute image_url from image_data if available"""
+        """Compute image_url from image_data if available and calculate reading time"""
         if isinstance(data, dict):
+            # Calculate reading time if content exists
+            if 'content' in data and data['content']:
+                from ..utils import calculate_reading_time
+                data['reading_time'] = calculate_reading_time(data['content'])
             return data
         # If it's a model instance, convert to dict
         if hasattr(data, '__dict__'):
@@ -75,6 +80,11 @@ class NewsResponse(NewsBase):
                 result['image_url'] = data._image_url_legacy
             else:
                 result['image_url'] = None
+
+            # Calculate reading time
+            if hasattr(data, 'content') and data.content:
+                from ..utils import calculate_reading_time
+                result['reading_time'] = calculate_reading_time(data.content)
 
             return result
         return data
@@ -166,3 +176,44 @@ class ContactResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class NewsletterCreate(BaseModel):
+    email: str
+
+
+class NewsletterResponse(BaseModel):
+    id: int
+    email: str
+    created_at: datetime
+    active: bool = True
+
+    class Config:
+        from_attributes = True
+
+
+class ArticleViewCreate(BaseModel):
+    news_id: int
+    ip_address: Optional[str] = None
+
+
+class ArticleReactionCreate(BaseModel):
+    news_id: int
+    reaction_type: str  # 'like' or 'bookmark'
+    ip_address: Optional[str] = None
+
+
+class ArticleReactionResponse(BaseModel):
+    id: int
+    news_id: int
+    reaction_type: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ArticleStats(BaseModel):
+    views: int
+    likes: int
+    bookmarks: int

@@ -1,16 +1,41 @@
 import { Link } from 'react-router-dom'
-import { Mail, Youtube, Instagram, Heart } from 'lucide-react'
+import { Mail, Youtube, Instagram, Heart, Send } from 'lucide-react'
+import { useState } from 'react'
+import { newsletterApi } from '../lib/api'
 import logo from '../assets/logo.jpg'
 
 function Footer() {
   const currentYear = new Date().getFullYear()
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage({ type: '', text: '' })
+
+    try {
+      await newsletterApi.subscribe(email)
+      setMessage({ type: 'success', text: 'Successfully subscribed to newsletter!' })
+      setEmail('')
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.detail || 'Failed to subscribe. Please try again.' 
+      })
+    } finally {
+      setLoading(false)
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000)
+    }
+  }
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white mt-12 sm:mt-16">
+    <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 dark:from-gray-950 dark:via-blue-950 dark:to-purple-950 text-white mt-12 sm:mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Brand Section */}
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-4 lg:col-span-2">
             <div className="flex items-center gap-3">
               <img
                 src={logo}
@@ -28,6 +53,36 @@ function Footer() {
               Your trusted source for the latest AI developments, innovations, and insights.
               Stay informed about the future of artificial intelligence.
             </p>
+
+            {/* Newsletter Subscription */}
+            <div className="pt-3">
+              <h4 className="font-semibold text-sm sm:text-base mb-2 text-cyan-400">Subscribe to Newsletter</h4>
+              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address"
+                  required
+                  className="flex-1 px-3 sm:px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 text-sm"
+                  data-testid="newsletter-email-input"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 sm:px-6 py-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-cyan-700 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm"
+                  data-testid="newsletter-subscribe-btn"
+                >
+                  <Send className="w-4 h-4" />
+                  {loading ? 'Subscribing...' : 'Subscribe'}
+                </button>
+              </form>
+              {message.text && (
+                <p className={`mt-2 text-xs sm:text-sm ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {message.text}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Quick Links */}
