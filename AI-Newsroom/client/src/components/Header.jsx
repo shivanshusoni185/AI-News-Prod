@@ -13,15 +13,15 @@ function Header() {
 
   return (
     <header className="bg-white shadow-md border-b border-gray-200">
-      <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+      <div className="container mx-auto px-3 sm:px-4 py-2 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2 group">
           <img
             src={logo}
             alt="TheCloudMind.ai"
-            className="h-14 w-14 rounded-full object-cover transition-transform group-hover:scale-105"
+            className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover transition-transform group-hover:scale-105"
           />
-          <span className="text-xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
+          <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 bg-clip-text text-transparent hidden sm:block">
             TheCloudMind.ai
           </span>
         </Link>
@@ -59,20 +59,20 @@ function Header() {
 
         {/* Admin Controls - Only show when logged in */}
         {token && (
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Link
               to="/admin/dashboard"
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white transition"
+              className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white transition text-sm sm:text-base"
             >
               <Settings className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span className="hidden sm:inline">Dashboard</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 px-4 py-2 rounded-lg bg-red-500/80 hover:bg-red-500 text-white transition"
+              className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg bg-red-500/80 hover:bg-red-500 text-white transition text-sm sm:text-base"
             >
               <LogOut className="w-4 h-4" />
-              <span>Logout</span>
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         )}

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cloudmindai.in/sitemap.xml
+
+# Block admin paths from crawling
+Disallow: /admin/
+Disallow: /admin/login

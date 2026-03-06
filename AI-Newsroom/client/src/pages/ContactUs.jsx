@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Send, CheckCircle, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 
@@ -48,9 +49,23 @@ function ContactUs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
+    <>
+      <Helmet>
+        <title>Contact Us - TheCloudMind.ai | Get in Touch</title>
+        <meta name="description" content="Have questions about AI news or want to collaborate? Contact TheCloudMind.ai team. We'd love to hear from you and respond to your inquiries." />
+        <meta name="keywords" content="contact TheCloudMind.ai, AI news contact, get in touch, AI platform support, feedback" />
+        <meta property="og:title" content="Contact Us - TheCloudMind.ai" />
+        <meta property="og:description" content="Get in touch with TheCloudMind.ai team. We're here to answer your questions." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://cloudmindai.in/contact" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact Us - TheCloudMind.ai" />
+        <meta name="twitter:description" content="Get in touch with TheCloudMind.ai team." />
+        <link rel="canonical" href="https://cloudmindai.in/contact" />
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -188,8 +203,9 @@ function ContactUs() {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

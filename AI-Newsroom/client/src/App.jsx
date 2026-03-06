@@ -3,6 +3,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import Home from './pages/Home'
 import Article from './pages/Article'
+import LatestNews from './pages/LatestNews'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import ContactUs from './pages/ContactUs'
@@ -15,7 +16,8 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/article/:id" element={<Article />} />
+          <Route path="/article/:slug" element={<Article />} />
+          <Route path="/latest-news" element={<LatestNews />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/admin/login" element={<AdminLogin />} />

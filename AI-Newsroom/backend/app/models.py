@@ -1,9 +1,57 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, JSON, LargeBinary
 from sqlalchemy.sql import func
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, Session
 from .database import Base
 from typing import List, Optional, Dict, Any
+import re
+import unicodedata
+
+
+def generate_slug(title: str, db_session: Optional[Session] = None, model_class=None) -> str:
+    """
+    Generate a URL-safe slug from a title.
+
+    Args:
+        title: The title to convert to a slug
+        db_session: Optional database session to check for uniqueness
+        model_class: The model class to check against (e.g., News)
+
+    Returns:
+        A URL-safe slug string
+    """
+    if not title:
+        return ""
+
+    # Convert to lowercase
+    slug = title.lower()
+
+    # Remove accents and special characters
+    slug = unicodedata.normalize('NFKD', slug)
+    slug = slug.encode('ascii', 'ignore').decode('ascii')
+
+    # Replace spaces and special characters with hyphens
+    slug = re.sub(r'[^a-z0-9]+', '-', slug)
+
+    # Remove leading/trailing hyphens
+    slug = slug.strip('-')
+
+    # Remove consecutive hyphens
+    slug = re.sub(r'-+', '-', slug)
+
+    # Limit length to 250 characters
+    slug = slug[:250]
+
+    # Handle uniqueness if db_session provided
+    if db_session and model_class:
+        original_slug = slug
+        counter = 2
+        while db_session.query(model_class).filter(model_class.slug == slug).first():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+
+    return slug
+
 
 class News(Base):
     """
@@ -16,12 +64,24 @@ class News(Base):
     summary = Column(String(500), nullable=False)
     content = Column(Text, nullable=False)
     tags = Column(JSON, nullable=True, default=list)
-    image_url = Column(String(500), nullable=True)
+    _image_url_legacy = Column('image_url', String(500), nullable=True)  # Deprecated - kept for backward compatibility
+    image_data = Column(LargeBinary, nullable=True)  # Store actual image binary data
+    image_filename = Column(String(255), nullable=True)  # Store original filename
+    image_mimetype = Column(String(100), nullable=True)  # Store MIME type (image/jpeg, etc.)
     published = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
     author_id = Column(Integer, nullable=True)  # Reference to user who created the news
     slug = Column(String(300), unique=True, nullable=True)  # URL-friendly version of title
+
+    @property
+    def image_url(self) -> Optional[str]:
+        """Computed property that returns the correct image URL"""
+        if self.image_data:
+            return f"/news/image/{self.id}"
+        elif self._image_url_legacy:  # Backward compatibility with old file-based images
+            return self._image_url_legacy
+        return None
 
     @validates('tags')
     def validate_tags(self, key, tags):
@@ -46,6 +106,11 @@ class News(Base):
             return tags_value
         return []
 
+    def generate_slug_from_title(self, db_session: Optional[Session] = None):
+        """Generate and set slug from title if slug is not already set"""
+        if not self.slug and self.title:
+            self.slug = generate_slug(self.title, db_session, News)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert model instance to dictionary"""
         # Ensure tags is always a list
@@ -55,13 +120,20 @@ class News(Base):
         elif tags_value is None:
             tags_value = []
 
+        # Generate image URL if image data exists
+        image_url = None
+        if self.image_data:
+            image_url = f"/news/image/{self.id}"
+        elif self.image_url:  # Backward compatibility
+            image_url = self.image_url
+
         return {
             'id': self.id,
             'title': self.title,
             'summary': self.summary,
             'content': self.content,
             'tags': tags_value,
-            'image_url': self.image_url,
+            'image_url': image_url,
             'published': self.published,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

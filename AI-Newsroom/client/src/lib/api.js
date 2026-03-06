@@ -22,6 +22,7 @@ export const newsApi = {
     return api.get(`/news?${params.toString()}`);
   },
   getById: (id) => api.get(`/news/${id}`),
+  getBySlug: (slug) => api.get(`/news/by-slug/${slug}`),
 };
 
 export const adminApi = {
@@ -48,7 +49,11 @@ export const adminApi = {
 
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  return `/uploads/images/${imagePath}`;
+  // Images are now served from database via API endpoint
+  if (imagePath.startsWith('/')) {
+    return `/api${imagePath}`;
+  }
+  return `/api${imagePath}`;
 };
 
 export default api;
