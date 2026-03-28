@@ -6,6 +6,7 @@ from ..database import get_db
 from ..models import News, generate_slug
 from ..schemas import NewsResponse, Token
 from ..auth import authenticate_admin, create_access_token, get_current_admin
+from ..services.auto_publish import run_auto_publish
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -241,3 +242,11 @@ async def get_all_news(
             item.tags = []
 
     return news
+
+
+@router.post("/automation/run")
+async def run_automation(
+    current_admin: str = Depends(get_current_admin)
+):
+    stats = run_auto_publish()
+    return {"message": "Automation run completed", "created": stats}

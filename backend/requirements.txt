@@ -9,3 +9,7 @@ sqlalchemy
 pydantic
 psycopg2-binary
 pillow
+apscheduler
+feedparser
+requests
+beautifulsoup4

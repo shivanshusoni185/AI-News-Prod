@@ -4,6 +4,7 @@ import logging
 
 from .database import engine, Base
 from .routers import admin, news, contact
+from .scheduler import start_scheduler, stop_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,16 @@ app.add_middleware(
 app.include_router(admin.router)
 app.include_router(news.router)
 app.include_router(contact.router)
+
+
+@app.on_event("startup")
+async def on_startup():
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    stop_scheduler()
 
 
 @app.get("/")

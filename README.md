@@ -122,6 +122,12 @@ The application will be available at `http://localhost:5000`
 - `ADMIN_USERNAME` - Admin login username/email
 - `ADMIN_PASSWORD` - Admin login password
 - `JWT_SECRET` - Secret key for JWT tokens
+- `AUTO_PUBLISH_ENABLED` - Enable daily automated publishing, default `true`
+- `AUTO_PUBLISH_TIMEZONE` - Scheduler timezone, default `Asia/Kolkata`
+- `AUTO_PUBLISH_HOUR` - Publish hour, default `9`
+- `AUTO_PUBLISH_MINUTE` - Publish minute, default `0`
+- `AUTO_PUBLISH_MAX_PER_TOPIC` - Max AI and sports stories per run, default `5`
+- `AUTO_PUBLISH_RUN_ON_STARTUP` - Run ingestion once on startup for testing, default `false`
 
 ## API Endpoints
 
