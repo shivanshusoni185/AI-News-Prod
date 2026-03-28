@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from ..auth import authenticate_admin, create_access_token, get_current_admin
 from ..services.auto_publish import run_auto_publish
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -42,11 +44,11 @@ async def read_image_data(file: UploadFile) -> tuple[bytes, str, str]:
 
 @router.post("/login", response_model=Token)
 async def login(username: str = Form(...), password: str = Form(...)):
-    print(f"[LOGIN] Login attempt - Username: {username}")
+    logger.info("Admin login attempt for username: %s", username)
 
     # Check if username is provided
     if not username:
-        print("[ERROR] Login failed: Username not provided")
+        logger.warning("Admin login failed: username not provided")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username is required",
@@ -54,7 +56,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
 
     # Check if password is provided
     if not password:
-        print("[ERROR] Login failed: Password not provided")
+        logger.warning("Admin login failed: password not provided")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password is required",
@@ -62,7 +64,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
 
     # Authenticate user
     if not authenticate_admin(username, password):
-        print(f"[ERROR] Login failed: Invalid credentials for user {username}")
+        logger.warning("Admin login failed: invalid credentials for %s", username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -72,10 +74,10 @@ async def login(username: str = Form(...), password: str = Form(...)):
     # Create access token
     try:
         access_token = create_access_token(data={"sub": username})
-        print(f"[SUCCESS] Login successful for user: {username}")
+        logger.info("Admin login successful for username: %s", username)
         return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
-        print(f"[ERROR] Error creating access token: {str(e)}")
+        logger.exception("Admin login failed while creating access token: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error generating access token",

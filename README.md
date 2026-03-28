@@ -2,7 +2,7 @@
 
 A modern, full-stack news platform dedicated to artificial intelligence news and insights.
 
-![TheCloudMind.ai](client/src/assets/logo.jpg)
+![TheCloudMind.ai](frontend/src/assets/logo.jpg)
 
 ## Features
 
@@ -48,7 +48,7 @@ AI-Newsroom/
 │   ├── .env                # Environment variables
 │   └── requirements.txt    # Python dependencies
 │
-└── client/
+└── frontend/
     ├── src/
     │   ├── components/     # React components
     │   ├── pages/          # Page components
@@ -98,9 +98,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### Frontend Setup
 
-1. Navigate to the client directory:
+1. Navigate to the frontend directory:
 ```bash
-cd client
+cd frontend
 ```
 
 2. Install dependencies:
@@ -175,7 +175,7 @@ uvicorn app.main:app --reload
 
 ### Frontend Development
 ```bash
-cd client
+cd frontend
 npm run dev
 ```
 
@@ -183,11 +183,11 @@ npm run dev
 
 #### Frontend Build
 ```bash
-cd client
+cd frontend
 npm run build
 ```
 
-The build output will be in `client/dist/`
+The build output will be in `frontend/dist/`
 
 ## Contributing
 

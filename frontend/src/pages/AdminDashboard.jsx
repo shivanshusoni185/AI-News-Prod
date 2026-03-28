@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, Loader, Eye, EyeOff, RefreshCw, LogOut, Plus, X } from 'lucide-react'
+import { Trash2, Loader, Eye, EyeOff, RefreshCw, LogOut, Plus, X, Bot } from 'lucide-react'
 import { adminApi, getImageUrl } from '../lib/api'
 import logo from '../assets/logo.jpg'
 
@@ -11,6 +11,7 @@ function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [runningAutomation, setRunningAutomation] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     summary: '',
@@ -52,6 +53,20 @@ function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     navigate('/admin/login')
+  }
+
+  const handleAutomationRun = async () => {
+    setRunningAutomation(true)
+    try {
+      const response = await adminApi.runAutomation()
+      fetchArticles()
+      const created = response.data?.created || {}
+      alert(`Automation completed. AI: ${created.ai || 0}, Sports: ${created.sports || 0}`)
+    } catch (error) {
+      alert('Error running automation: ' + (error.response?.data?.detail || error.message))
+    } finally {
+      setRunningAutomation(false)
+    }
   }
 
   const handleDelete = async (id) => {
@@ -145,6 +160,15 @@ function AdminDashboard() {
               Create Post
             </button>
             <button
+              onClick={handleAutomationRun}
+              disabled={runningAutomation}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+              title="Run automated publishing"
+            >
+              {runningAutomation ? <Loader className="w-5 h-5 animate-spin" /> : <Bot className="w-5 h-5" />}
+              Auto Publish
+            </button>
+            <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
@@ -193,9 +217,9 @@ function AdminDashboard() {
                 <tr key={article.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="w-16 h-12 bg-gray-100 rounded overflow-hidden">
-                      {article.image_path ? (
+                      {article.image_url ? (
                         <img
-                          src={getImageUrl(article.image_path)}
+                          src={getImageUrl(article.image_url)}
                           alt=""
                           className="w-full h-full object-cover"
                         />

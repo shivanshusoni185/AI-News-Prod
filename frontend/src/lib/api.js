@@ -45,6 +45,7 @@ export const adminApi = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   deleteNews: (id) => api.delete(`/admin/news/${id}`),
+  runAutomation: () => api.post('/admin/automation/run'),
 };
 
 export const getImageUrl = (imagePath) => {

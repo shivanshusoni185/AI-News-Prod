@@ -31,20 +31,15 @@ function AdminLogin() {
     }
 
     try {
-      console.log('Sending login request...', { username })
       const response = await adminApi.login(username, password)
-      console.log('Login response:', response)
 
       if (response.data?.access_token) {
         localStorage.setItem('token', response.data.access_token)
-        console.log('Login successful, redirecting to admin dashboard...')
         navigate('/admin')
       } else {
         throw new Error('No access token received in response')
       }
     } catch (err) {
-      console.error('Login error:', err)
-
       // Handle different types of errors
       let errorMessage = 'Login failed. Please try again.'
 

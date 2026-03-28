@@ -61,7 +61,7 @@ function Header() {
         {token && (
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Link
-              to="/admin/dashboard"
+              to="/admin"
               className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg bg-blue-500/80 hover:bg-blue-500 text-white transition text-sm sm:text-base"
             >
               <Settings className="w-4 h-4" />
