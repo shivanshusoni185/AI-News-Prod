@@ -8,6 +8,7 @@ import logo from '../assets/logo.jpg'
 function Home() {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
 
@@ -17,11 +18,14 @@ function Home() {
 
   const fetchNews = async () => {
     setLoading(true)
+    setError('')
     try {
       const response = await newsApi.getAll(search)
       setArticles(response.data)
     } catch (error) {
       console.error('Error fetching news:', error)
+      setArticles([])
+      setError('Unable to load news right now. Please try again in a moment.')
     } finally {
       setLoading(false)
     }
@@ -91,6 +95,16 @@ function Home() {
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <Loader className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-20">
+          <p className="text-red-600 text-xl">{error}</p>
+          <button
+            onClick={fetchNews}
+            className="mt-4 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition"
+          >
+            Retry
+          </button>
         </div>
       ) : articles.length === 0 ? (
         <div className="text-center py-20">

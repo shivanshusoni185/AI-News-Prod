@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 
 from .database import engine, Base
 from .routers import admin, news, contact
@@ -19,9 +20,18 @@ except Exception as e:
 
 app = FastAPI(title="AI News API", version="1.0.0")
 
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "https://cloudmindai.in,https://www.cloudmindai.in,https://thecloudmind-web.fly.dev",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
