@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Search, Loader } from 'lucide-react'
 import NewsCard from '../components/NewsCard'
@@ -10,6 +10,21 @@ const CATEGORY_TABS = [
   { label: 'Sports', value: 'Sports' },
 ]
 
+const getArticleTags = (article) => {
+  if (Array.isArray(article.tags)) {
+    return article.tags
+  }
+
+  if (typeof article.tags === 'string') {
+    return article.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+  }
+
+  return []
+}
+
+const hasTag = (article, tag) =>
+  getArticleTags(article).some((value) => value.toLowerCase() === tag.toLowerCase())
+
 function Home() {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,9 +35,9 @@ function Home() {
 
   useEffect(() => {
     fetchNews()
-  }, [search, activeTag])
+  }, [fetchNews])
 
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -35,11 +50,13 @@ function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [activeTag, search])
 
   const featuredArticle = articles[0]
   const secondaryArticles = articles.slice(1, 7)
   const restArticles = articles.slice(7)
+  const aiArticles = useMemo(() => articles.filter((article) => hasTag(article, 'AI')), [articles])
+  const sportsArticles = useMemo(() => articles.filter((article) => hasTag(article, 'Sports')), [articles])
 
   const activeLabel = useMemo(
     () => CATEGORY_TABS.find((tab) => tab.value === activeTag)?.label ?? 'All News',
@@ -75,53 +92,71 @@ function Home() {
       </Helmet>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <section className="glass-panel rounded-[30px] px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                Coverage filters
-              </div>
-              <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-                {CATEGORY_TABS.map((tab) => {
-                  const isActive = tab.value === activeTag
-                  return (
-                    <button
-                      key={tab.label}
-                      type="button"
-                      onClick={() => setActiveTag(tab.value)}
-                      className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        isActive
-                          ? 'border-slate-950 bg-slate-950 text-white shadow-sm'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <form onSubmit={handleSearch} className="w-full lg:max-w-2xl">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Search stories, teams, companies, markets..."
-                    className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm text-slate-900 outline-none transition focus:border-teal-500"
-                  />
+        <section className="sticky top-[72px] z-30 -mx-1 mb-8 px-1 md:static md:top-auto md:z-auto md:mx-0 md:mb-10 md:px-0">
+          <div className="glass-panel rounded-[26px] border-white/80 px-4 py-4 shadow-[0_18px_55px_rgba(15,23,42,0.08)] sm:px-6 sm:py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Filter coverage
                 </div>
-                <button
-                  type="submit"
-                  className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-w-[120px]"
-                >
-                  Search
-                </button>
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {CATEGORY_TABS.map((tab) => {
+                    const isActive = tab.value === activeTag
+                    return (
+                      <button
+                        key={tab.label}
+                        type="button"
+                        onClick={() => setActiveTag(tab.value)}
+                        className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                          isActive
+                            ? 'border-slate-950 bg-slate-950 text-white shadow-sm'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </form>
+
+              <form onSubmit={handleSearch} className="w-full lg:max-w-2xl">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      placeholder="Search stories, teams, companies, markets..."
+                      className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm text-slate-900 outline-none transition focus:border-teal-500"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-w-[120px]"
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                {activeLabel}
+              </div>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                Original reporting built for fast reading
+              </h1>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-slate-600 lg:text-right">
+              Source-grounded AI and sports coverage, rewritten into a cleaner editorial format for client demos, briefings, and publishing.
+            </p>
           </div>
         </section>
 
@@ -145,20 +180,6 @@ function Home() {
           </div>
         ) : (
           <div className="mt-10 space-y-12">
-            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  {activeLabel}
-                </div>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                  Original reporting built for fast reading
-                </h1>
-              </div>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-right">
-                Source-grounded AI and sports coverage, rewritten into a cleaner editorial format for clients and daily briefings.
-              </p>
-            </section>
-
             {featuredArticle && (
               <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] xl:items-stretch">
                 <div className="glass-panel overflow-hidden rounded-[34px] p-4">
@@ -169,6 +190,64 @@ function Home() {
                     <NewsCard key={article.id} article={article} />
                   ))}
                 </div>
+              </section>
+            )}
+
+            {!activeTag && (
+              <section className="grid gap-8 xl:grid-cols-2">
+                {aiArticles.length > 0 && (
+                  <div className="rounded-[30px] border border-slate-200/80 bg-white/80 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.05)] sm:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-700">
+                          AI Desk
+                        </div>
+                        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+                          AI coverage strip
+                        </h2>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTag('AI')}
+                        className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                      >
+                        View AI
+                      </button>
+                    </div>
+                    <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                      {aiArticles.slice(0, 4).map((article) => (
+                        <NewsCard key={article.id} article={article} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {sportsArticles.length > 0 && (
+                  <div className="rounded-[30px] border border-slate-200/80 bg-white/80 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.05)] sm:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">
+                          Sports Desk
+                        </div>
+                        <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+                          Sports coverage strip
+                        </h2>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTag('Sports')}
+                        className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                      >
+                        View Sports
+                      </button>
+                    </div>
+                    <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                      {sportsArticles.slice(0, 4).map((article) => (
+                        <NewsCard key={article.id} article={article} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
             )}
 

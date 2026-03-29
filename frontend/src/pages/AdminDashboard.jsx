@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Trash2, Loader, Eye, EyeOff, RefreshCw, LogOut, Plus, X, Bot, Image as ImageIcon } from 'lucide-react'
 import { adminApi, getImageUrl } from '../lib/api'
@@ -23,16 +23,7 @@ function AdminDashboard() {
     image: null
   })
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/admin/login')
-      return
-    }
-    fetchArticles()
-  }, [navigate])
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       const response = await adminApi.getAllNews()
       setArticles(response.data)
@@ -45,7 +36,16 @@ function AdminDashboard() {
       setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [navigate])
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/admin/login')
+      return
+    }
+    fetchArticles()
+  }, [fetchArticles, navigate])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -105,7 +105,7 @@ function AdminDashboard() {
     try {
       await adminApi.deleteNews(id)
       fetchArticles()
-    } catch (error) {
+    } catch {
       alert('Error deleting article')
     }
   }

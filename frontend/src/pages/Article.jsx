@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, Calendar, ExternalLink, Loader, Tag } from 'lucide-react'
@@ -42,22 +42,22 @@ function Article() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchArticle()
-  }, [slug])
-
-  const fetchArticle = async () => {
+  const fetchArticle = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const response = await newsApi.getBySlug(slug)
       setArticle(response.data)
-    } catch (err) {
+    } catch {
       setError('Article not found')
     } finally {
       setLoading(false)
     }
-  }
+  }, [slug])
+
+  useEffect(() => {
+    fetchArticle()
+  }, [fetchArticle])
 
   const parsedContent = useMemo(
     () => parseArticleContent(article?.content || ''),
