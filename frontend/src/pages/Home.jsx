@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Search, Loader, Sparkles, Newspaper, Radar } from 'lucide-react'
+import { Search, Loader } from 'lucide-react'
 import NewsCard from '../components/NewsCard'
 import { newsApi } from '../lib/api'
-import logo from '../assets/logo.jpg'
+
+const CATEGORY_TABS = [
+  { label: 'All News', value: '' },
+  { label: 'AI', value: 'AI' },
+  { label: 'Sports', value: 'Sports' },
+]
 
 function Home() {
   const [articles, setArticles] = useState([])
@@ -11,16 +16,17 @@ function Home() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
+  const [activeTag, setActiveTag] = useState('')
 
   useEffect(() => {
     fetchNews()
-  }, [search])
+  }, [search, activeTag])
 
   const fetchNews = async () => {
     setLoading(true)
     setError('')
     try {
-      const response = await newsApi.getAll(search)
+      const response = await newsApi.getAll(search, activeTag)
       setArticles(response.data)
     } catch (err) {
       console.error('Error fetching news:', err)
@@ -35,17 +41,10 @@ function Home() {
   const secondaryArticles = articles.slice(1, 7)
   const restArticles = articles.slice(7)
 
-  const stats = useMemo(() => {
-    const tags = new Set()
-    articles.forEach(article => {
-      const values = Array.isArray(article.tags) ? article.tags : []
-      values.forEach(tag => tags.add(tag))
-    })
-    return {
-      count: articles.length,
-      tags: tags.size,
-    }
-  }, [articles])
+  const activeLabel = useMemo(
+    () => CATEGORY_TABS.find((tab) => tab.value === activeTag)?.label ?? 'All News',
+    [activeTag]
+  )
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -75,69 +74,54 @@ function Home() {
         <link rel="canonical" href="https://cloudmindai.in/" />
       </Helmet>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-        <section className="hero-grid glass-panel overflow-hidden rounded-[36px] px-6 py-8 sm:px-10 sm:py-12">
-          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
-            <div>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">
-                <Sparkles className="h-4 w-4 text-teal-600" />
-                Direct-source newsroom workflow
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <section className="glass-panel rounded-[30px] px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                Coverage filters
               </div>
-
-              <div className="flex items-center gap-4">
-                <img
-                  src={logo}
-                  alt="TheCloudMind.ai"
-                  className="h-20 w-20 rounded-[28px] object-cover shadow-xl ring-4 ring-white/80 sm:h-24 sm:w-24"
-                />
-                <div>
-                  <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-6xl">
-                    TheCloudMind.ai
-                  </h1>
-                  <p className="mt-2 max-w-2xl font-editorial text-xl leading-8 text-slate-600">
-                    AI and sports coverage rewritten into crisp original analysis instead of copied feed text.
-                  </p>
-                </div>
-              </div>
-
-              <form onSubmit={handleSearch} className="mt-8 max-w-2xl">
-                <div className="flex flex-col gap-3 rounded-[24px] border border-white/70 bg-white/85 p-3 shadow-lg sm:flex-row">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      placeholder="Search AI, sport, policy, markets..."
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-[28px] border border-white/70 bg-white/85 p-5">
-                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  <Newspaper className="h-4 w-4 text-teal-600" />
-                  Live stories
-                </div>
-                <div className="mt-3 text-4xl font-bold text-slate-950">{stats.count}</div>
-              </div>
-              <div className="rounded-[28px] border border-white/70 bg-white/85 p-5">
-                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  <Radar className="h-4 w-4 text-blue-600" />
-                  Active beats
-                </div>
-                <div className="mt-3 text-4xl font-bold text-slate-950">{stats.tags}</div>
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                {CATEGORY_TABS.map((tab) => {
+                  const isActive = tab.value === activeTag
+                  return (
+                    <button
+                      key={tab.label}
+                      type="button"
+                      onClick={() => setActiveTag(tab.value)}
+                      className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                        isActive
+                          ? 'border-slate-950 bg-slate-950 text-white shadow-sm'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
+
+            <form onSubmit={handleSearch} className="w-full lg:max-w-2xl">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Search stories, teams, companies, markets..."
+                    className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm text-slate-900 outline-none transition focus:border-teal-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:min-w-[120px]"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
           </div>
         </section>
 
@@ -161,12 +145,26 @@ function Home() {
           </div>
         ) : (
           <div className="mt-10 space-y-12">
+            <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  {activeLabel}
+                </div>
+                <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                  Original reporting built for fast reading
+                </h1>
+              </div>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-right">
+                Source-grounded AI and sports coverage, rewritten into a cleaner editorial format for clients and daily briefings.
+              </p>
+            </section>
+
             {featuredArticle && (
-              <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+              <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] xl:items-stretch">
                 <div className="glass-panel overflow-hidden rounded-[34px] p-4">
                   <NewsCard article={featuredArticle} />
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
                   {secondaryArticles.slice(0, 3).map(article => (
                     <NewsCard key={article.id} article={article} />
                   ))}
