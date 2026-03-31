@@ -369,6 +369,77 @@ def _decode_google_news_url(source_url: str) -> str:
     return source_url
 
 
+_STOP_WORDS = frozenset({
+    "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+    "has", "have", "had", "as", "its", "it", "this", "that", "his", "her",
+    "their", "our", "your", "will", "can", "could", "would", "should",
+    "may", "might", "do", "does", "did", "not", "no", "up", "out", "into",
+    "over", "after", "before", "during", "about", "against", "between",
+    "raises", "faces", "advocates", "poised", "amid", "amid", "vs",
+})
+
+
+def _extract_search_keywords(title: str, tags: list[str]) -> str:
+    """Extract 4–5 meaningful keywords from article title + tags for image search."""
+    words = re.findall(r"[A-Za-z][a-z]{2,}", title)
+    filtered = [w for w in words if w.lower() not in _STOP_WORDS][:5]
+    topic_hint = ""
+    for tag in (tags or []):
+        tag_l = tag.lower()
+        if tag_l in ("cricket", "ipl", "sports"):
+            topic_hint = "cricket"
+            break
+        if tag_l == "ai":
+            topic_hint = "artificial intelligence"
+            break
+    parts = filtered + ([topic_hint] if topic_hint and topic_hint not in " ".join(filtered).lower() else [])
+    return " ".join(parts[:6])
+
+
+def _fetch_wikipedia_image(title: str, tags: list[str]) -> Optional[str]:
+    """Search Wikipedia for a relevant image using article keywords. Free, no API key."""
+    keywords = _extract_search_keywords(title, tags)
+    if not keywords:
+        return None
+    try:
+        search_resp = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": keywords,
+                "srlimit": 5,
+                "format": "json",
+            },
+            headers={"User-Agent": USER_AGENT},
+            timeout=10,
+        )
+        results = search_resp.json().get("query", {}).get("search", [])
+        if not results:
+            return None
+        for result in results:
+            page_title = result["title"]
+            summary_resp = requests.get(
+                f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(page_title)}",
+                headers={"User-Agent": USER_AGENT},
+                timeout=10,
+            )
+            if summary_resp.status_code != 200:
+                continue
+            thumb = summary_resp.json().get("thumbnail", {}).get("source")
+            if not thumb:
+                continue
+            # Upscale thumbnail to a larger resolution
+            for small in ("/50px-", "/100px-", "/150px-", "/200px-", "/220px-", "/240px-", "/300px-"):
+                thumb = thumb.replace(small, "/800px-")
+            logger.info("Wikipedia image found for '%s': %s", keywords, thumb)
+            return thumb
+    except Exception as exc:
+        logger.warning("Wikipedia image lookup failed for '%s': %s", keywords, exc)
+    return None
+
+
 def _download_image(image_url: str) -> tuple[bytes, str, str] | tuple[None, None, None]:
     try:
         response = _request_with_retries("GET", image_url, stream=True)
@@ -719,6 +790,13 @@ def _create_news_item(db: Session, feed: FeedConfig, entry: dict) -> bool:
         return False
 
     image_data, image_filename, image_mimetype = image_asset
+
+    # If the article page had no image, try Wikipedia as a fallback
+    if not image_data:
+        wiki_url = _fetch_wikipedia_image(draft.title, list(feed.tags))
+        if wiki_url:
+            image_data, image_filename, image_mimetype = _download_image(wiki_url)
+
     news = News(
         title=draft.title,
         summary=draft.summary,
@@ -757,6 +835,14 @@ def refresh_automated_article_images(limit: int = 25) -> dict[str, int]:
             try:
                 _, _, image_asset = _fetch_article_assets(source_url)
                 image_data, image_filename, image_mimetype = image_asset
+                # Fall back to Wikipedia if source page had no image
+                if not image_data:
+                    tags = article.tags or []
+                    if isinstance(tags, str):
+                        tags = [tags]
+                    wiki_url = _fetch_wikipedia_image(article.title, list(tags))
+                    if wiki_url:
+                        image_data, image_filename, image_mimetype = _download_image(wiki_url)
                 if not image_data:
                     continue
                 article.image_data = image_data

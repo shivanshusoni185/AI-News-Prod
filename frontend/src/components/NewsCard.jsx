@@ -2,8 +2,12 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight, Calendar } from 'lucide-react'
 import { getImageUrl } from '../lib/api'
 
+function getFallbackImage(id) {
+  return `https://picsum.photos/seed/tcm${id}/800/450`
+}
+
 function NewsCard({ article, compact = false }) {
-  const imageUrl = getImageUrl(article.image_url)
+  const imageUrl = getImageUrl(article.image_url) || getFallbackImage(article.id)
   const tags = Array.isArray(article.tags)
     ? article.tags
     : article.tags
@@ -25,17 +29,11 @@ function NewsCard({ article, compact = false }) {
       >
         {/* Thumbnail */}
         <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded-[14px] bg-slate-100">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={article.title}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-100 via-white to-blue-100 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
-              TCM
-            </div>
-          )}
+          <img
+            src={imageUrl}
+            alt={article.title}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
           {tags[0] && (
             <span className="absolute bottom-1.5 left-1.5 rounded-full bg-slate-950/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white backdrop-blur">
               {tags[0]}
@@ -71,17 +69,11 @@ function NewsCard({ article, compact = false }) {
     >
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={article.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-100 via-white to-blue-100 text-sm font-medium uppercase tracking-[0.3em] text-slate-500">
-            TheCloudMind
-          </div>
-        )}
+        <img
+          src={imageUrl}
+          alt={article.title}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+        />
         {/* Overlay badges */}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
           {tags[0] && (
